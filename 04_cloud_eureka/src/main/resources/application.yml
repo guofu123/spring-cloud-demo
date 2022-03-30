@@ -1,0 +1,57 @@
+server:
+  port: 9004
+spring:
+  application:
+    name: eureka-server
+eureka:
+  client:
+    service-url:
+      # eureka注册地址
+      defaultZone: http://127.0.0.1:9004/eureka
+    # 是否注册
+    register-with-eureka: false
+    # 是否拉取注册的服务
+    fetch-registry: false
+  server:
+    enable-self-preservation: false       # 关闭自我保护，默认是打开
+    eviction-interval-timer-in-ms: 1000    #扫描失效服务的间隔时间
+---
+spring:
+  config:
+    activate:
+      on-profile: peer1
+server:
+  port: 9004
+eureka:
+  instance:
+    hostname: peer1
+  client:
+    service-url:
+      defaultZone: http://peer2:9005/eureka,http://peer3:9006/eureka
+---
+spring:
+  config:
+     activate:
+      on-profile: peer2
+server:
+  port: 9005
+eureka:
+  instance:
+    hostname: peer2
+  client:
+    service-url:
+      defaultZone: http://peer1:9004/eureka,http://peer3:9006/eureka
+---
+spring:
+  config:
+    activate:
+      on-profile: peer3
+server:
+  port: 9006
+eureka:
+  instance:
+    hostname: peer3
+  client:
+    service-url:
+      defaultZone: http://peer1:9004/eureka,http://peer2:9005/eureka
+

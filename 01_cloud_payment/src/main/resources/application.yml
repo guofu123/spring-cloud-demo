@@ -1,0 +1,14 @@
+server:
+  port: ${port:9001}
+spring:
+  application:
+    name: cloud-payment-service
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:9004/eureka
+      # 集群测试
+#      defaultZone: http://peer1:9004/eureka,http://peer2:9005/eureka,http://peer3:9006/eureka
+    register-with-eureka: true
+    fetch-registry: true
+

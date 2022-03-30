@@ -1,0 +1,62 @@
+server:
+  port: 9005
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:9004/eureka
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      routes:
+        #        - id: url-proxy-1
+        #          uri: https://blog.csdn.net
+        #          predicates:
+        #            - Path=/csdn
+        #        - id: url-proxy-2
+        #          # 固定地址
+        ##          uri: http://127.0.0.1:9001
+        #          # 基于eureka注册服务负载均衡的跳转
+        #          uri: lb://CLOUD-PAYMENT-SERVICE
+        #          predicates:
+        #            - Path=/payment/**
+#        - id: url-proxy-3
+#          uri: https://www.baidu.com/
+##          order: 0
+#          predicates:
+#            - Query=smile, pu.
+#        - id: url-proxy-4
+#          uri: https://www.baidu.com/
+#          order: 0
+#          predicates:
+#            - Header=X-Request-Id, \d+
+#        - id: url-proxy-4
+#          uri: https://www.baidu.com/
+#          order: 0
+#          predicates:
+#            - Cookie=sessionId, guofu
+#          - id: url-proxy-5
+#            # 固定地址
+#            uri: http://127.0.0.1:9001
+#            predicates:
+#              - Path=/api/{segment}
+#            filters:
+#              - StripPrefix=1
+#              - PrefixPath=/payment
+        - id: service12
+          uri: http://127.0.0.1:9001
+          predicates:
+            - Path=/api/payment/**
+          filters:
+            - RewritePath=/api/(?<segment>.*), /$\{segment}
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,102 @@
+server:
+  port: 9002
+spring:
+  application:
+    name: cloud-order-service
+eureka:
+  client:
+    service-url:
+      defaultZone: http://127.0.0.1:9004/eureka
+      # 集群测试
+#      defaultZone: http://peer1:9004/eureka,http://peer2:9005/eureka,http://peer3:9006/eureka
+    fetch-registry: true
+    register-with-eureka: true
+feign:
+  client:
+    config:
+      # 可以指定调用的服务名，默认匹配所有
+      default:
+        connectTimeout: 5000  #防止由于服务器处理时间长而阻塞调用者 默认5000ms
+        readTimeout: 5000    #从连接建立时开始应用，在返回响应时间过长时触发  默认5000ms
+  # 开启熔断降级
+  circuitbreaker:
+    enabled: true
+  # 请求和相应的压缩配置
+  compression:
+    request:
+      enabled: true # 请求压缩
+      mime-types: text/xml,application/xml,application/json # 压缩的类型
+      min-request-size: 2048 # 请求最小压缩的阈值
+    response:
+      enabled: true #响应压缩
+      useGzipDecoder: true #使用gzip解码器解码响应数据
+# 设置日志级别
+logging:
+  level:
+    com.ggf.demo: debug
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        failureRateThreshold: 30 #失败请求百分比，超过这个比例，CircuitBreaker变为OPEN状态
+        slidingWindowSize: 10 #滑动窗口的大小，配置COUNT_BASED,表示10个请求，配置TIME_BASED表示10秒
+        minimumNumberOfCalls: 5 #最小请求个数，只有在滑动窗口内，请求个数达到这个个数，才会触发CircuitBreader对于断路器的判断
+        slidingWindowType: TIME_BASED #滑动窗口的类型
+        permittedNumberOfCallsInHalfOpenState: 3 #当CircuitBreaker处于HALF_OPEN状态的时候，允许通过的请求个数
+        automaticTransitionFromOpenToHalfOpenEnabled: true #设置true，表示自动从OPEN变成HALF_OPEN，即使没有请求过来
+        waitDurationInOpenState: 2s #从OPEN到HALF_OPEN状态需要等待的时间
+        recordExceptions: #异常名单
+          - java.lang.Exception
+    instances:
+      backendA:
+        baseConfig: default #熔断器backendA，继承默认配置default
+      backendB:
+        failureRateThreshold: 50
+        slowCallDurationThreshold: 2s #慢调用时间阈值，高于这个阈值的呼叫视为慢调用，并增加慢调用比例。
+        slowCallRateThreshold: 30 #慢调用百分比阈值，断路器把调用时间大于slowCallDurationThreshold，视为慢调用，当慢调用比例大于阈值，断路器打开，并进行服务降级
+        slidingWindowSize: 10
+        slidingWindowType: TIME_BASED
+        minimumNumberOfCalls: 2
+        permittedNumberOfCallsInHalfOpenState: 2
+        waitDurationInOpenState: 2s #从OPEN到HALF_OPEN状态需要等待的时间
+  # 信号量隔离方式
+  bulkhead:
+    configs:
+      default:
+        maxConcurrentCalls: 5 # 隔离允许并发线程执行的最大数量
+        maxWaitDuration: 20ms # 当达到并发调用数量时，新的线程的阻塞时间
+    instances:
+      backendA:
+        baseConfig: default
+      backendB:
+        maxWaitDuration: 10ms
+        maxConcurrentCalls: 20
+  # 线程池隔离方式
+  thread-pool-bulkhead:
+    configs:
+      default:
+        maxThreadPoolSize: 4 # 最大线程池大小
+        coreThreadPoolSize: 2 # 核心线程池大小
+        queueCapacity: 2 # 队列容量
+    instances:
+      backendA:
+        baseConfig: default
+      backendB:
+        maxThreadPoolSize: 1
+        coreThreadPoolSize: 1
+        queueCapacity: 1
+  # 配置限流规则
+  ratelimiter:
+    configs:
+      default:
+        timeoutDuration: 5ms   # 线程等待权限的默认等待时间
+        limitRefreshPeriod: 1s # 限流器每隔1s刷新一次，将允许处理的最大请求重置为2
+        limitForPeriod: 2 #在一个刷新周期内，允许执行的最大请求数
+    instances:
+      backendA:
+        baseConfig: default
+      backendB:
+        timeoutDuration: 5
+        limitRefreshPeriod: 1s
+        limitForPeriod: 5
+
